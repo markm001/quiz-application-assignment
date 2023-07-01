@@ -5,12 +5,15 @@ import main.model.entity.Topic;
 import main.model.entity.dto.QuestionRequest;
 import main.model.entity.dto.QuestionResponse;
 import main.model.repository.DaoQuestion;
+import main.model.repository.DaoResponse;
+import main.model.repository.DaoTopic;
 import main.util.DatabaseConnector;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +27,18 @@ class DaoQuestionTest {
     @BeforeAll
     static void beforeAll() {
         try {
-            DatabaseConnector.setAutoCommit(false);
-            daoQuestion = new DaoQuestion(DatabaseConnector.getConnection());
+            Connection connection = DatabaseConnector.getConnection();
+
+            connection.setAutoCommit(true);
+            DaoTopic daoTopic = new DaoTopic(connection);
+            boolean success = daoTopic.createTopics(Topic.values());
+            assertTrue(success);
+
+            connection.setAutoCommit(false);
+
+            DaoResponse daoResponse = new DaoResponse(connection);
+
+            daoQuestion = new DaoQuestion(connection, daoTopic, daoResponse);
         } catch (SQLException ignore) { }
     }
 
@@ -218,19 +231,17 @@ class DaoQuestionTest {
         List<Long> savedQuestionIds = new ArrayList<>();
         questionList.forEach( q -> savedQuestionIds.add(daoQuestion.saveQuestion(q)) );
 
-//        Question questionToDelete = daoQuestion.retrieveAllQuestions().get(5);
+        Long questionIdToDelete = savedQuestionIds.get(1);
+        Optional<QuestionResponse> deletedQuestion = daoQuestion.findQuestionById(questionIdToDelete);
 
         //when
-        boolean success = daoQuestion.deleteQuestionById(savedQuestionIds.get(1));
-//
-//        List<Question> filteredList = daoQuestion.retrieveAllQuestions().stream()
-//                .filter(q ->
-//                        q.equals(questionToDelete)
-//                ).toList();
+        boolean success = daoQuestion.deleteQuestionById(questionIdToDelete);
 
         //then
+        List<QuestionResponse> allQuestions = daoQuestion.retrieveQuestions();
+
         assertTrue(success);
-//        assertEquals(initialAmount-1, daoQuestion.retrieveAllQuestions().size());
-//        assertTrue(filteredList.isEmpty());
+        assertEquals(initialAmount - 1, allQuestions.size());
+        assertFalse(allQuestions.contains(deletedQuestion.get()));
     }
 }

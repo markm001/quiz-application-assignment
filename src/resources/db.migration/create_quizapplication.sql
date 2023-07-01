@@ -18,9 +18,9 @@ DROP TABLE IF EXISTS `quizapplication`.`topic` ;
 CREATE TABLE IF NOT EXISTS `quizapplication`.`topic` (
     `id` INT(11) NOT NULL AUTO_INCREMENT,
     `topicName` VARCHAR(20) NULL DEFAULT NULL,
-    PRIMARY KEY (`id`))
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `topicName` (`topicName` ASC) VISIBLE)
     ENGINE = InnoDB
-    AUTO_INCREMENT = 4
     DEFAULT CHARACTER SET = utf8mb4
     COLLATE = utf8mb4_0900_ai_ci;
 

@@ -4,5 +4,5 @@ public enum Topic {
     ARTS,
     CULTURE,
     FOOD,
-    MISSING
+    MISSING //Debug Topic, will not be created in DB.
 }
